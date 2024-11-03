@@ -11,17 +11,18 @@ def make_env_fn(env_key, render_mode=None, frame_stack=1):
         return env
     return _f
 
-
-# Gives a vectorized interface to a single environment
 class WrapEnv:
     def __init__(self, env_fn):
         self.env = env_fn()
+        # デフォルトのmax_stepsを設定
+        self.max_steps = getattr(self.env.unwrapped, 'max_steps', 1000)
 
     def __getattr__(self, attr):
+        if attr == 'max_steps':
+            return self.max_steps
         return getattr(self.env, attr)
 
     def step(self, action):
-        # assert action.ndim == 1
         env_return = self.env.step(action)
         if len(env_return) == 4:
             state, reward, terminated, info = env_return
@@ -44,8 +45,8 @@ class WrapEnv:
             return np.array([state['image']])
         else:
             return np.array([state])
-        
 
+# FrameStackクラスは変更なし
 class FrameStack(gym.Wrapper):
     def __init__(self, env, k):
         """Stack k last frames.
@@ -73,7 +74,6 @@ class FrameStack(gym.Wrapper):
 
     def step(self, action):
         ob, reward, terminated, truncated, info = self.env.step(action)
-        # ob, reward, done, info = self.env.step(action)
         ob = ob['image']
         self.frames.append(ob)
         return self._get_ob(), reward, terminated, truncated, info
