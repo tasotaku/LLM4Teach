@@ -18,8 +18,6 @@ from utils import global_param
 from abc import ABC, abstractmethod
 
 class Base_Planner(ABC):
-    """The base class for Planner."""
-
     def __init__(self, offline=True, soft=False, prefix=''):
         super().__init__()
         self.offline = offline
@@ -34,14 +32,14 @@ class Base_Planner(ABC):
         self.show_dialogue = False
         
         if not offline:
-            self.llm_model = "vicuna-33b"
-            self.llm_url = 'http://localhost:3300/v1/chat/completions'
-            # self.llm_model = "chatglm_Turbo"
-            # self.llm_url = 'http://10.109.116.3:6000/chat'
+            # ChatGPT API用の設定
+            self.api_key = os.getenv('OPENAI_API_KEY')
+            if self.api_key is None:
+                raise ValueError("OPENAI_API_KEY environment variable is not set")
+            self.llm_url = 'https://api.openai.com/v1/chat/completions'
             self.plans_dict = {}
-            if self.llm_model == "vicuna-33b":
-                self.init_llm()
-        
+            self.init_llm()
+            
     def reset(self, show=False):
         self.dialogue_user = ''
         self.dialogue_logger = ''
@@ -53,58 +51,56 @@ class Base_Planner(ABC):
         # if not self.offline:
         #     self.online_planning("reset")
         
+        
     def init_llm(self):
         self.dialogue_system += self.prompt_prefix
-
-        ## set system part
-        server_error_cnt = 0
-        while server_error_cnt < 10:
-            try:
-                headers = {'Content-Type': 'application/json'}
-                
-                data = {'model': self.llm_model, "messages":[{"role": "system", "content": self.prompt_prefix}]}
-                response = requests.post(self.llm_url, headers=headers, json=data)
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    break
-                else:
-                    assert False, f"fail to initialize: status code {response.status_code}"                
-                    
-            except Exception as e:
-                server_error_cnt += 1
-                print(f"fail to initialize: {e}")
+        try:
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {self.api_key}'
+            }
+            data = {
+                'model': 'gpt-3.5-turbo',
+                'messages': [{'role': 'system', 'content': self.prompt_prefix}]
+            }
+            response = requests.post(self.llm_url, headers=headers, json=data)
+            if response.status_code != 200:
+                raise Exception(f"Failed to initialize: status code {response.status_code}")
+        except Exception as e:
+            print(f"fail to initialize: {e}")
 
     def query_codex(self, prompt_text):
         server_error_cnt = 0
         while server_error_cnt < 10:
             try:
-                #response =  openai.Completion.create(prompt_text)
-                headers = {'Content-Type': 'application/json'}
-                
-                # print(f"user prompt:{prompt_text}")
-                if self.llm_model == "chatglm_Turbo":
-                    data = {'model': self.llm_model, "prompt":[{"role": "user", "content": self.prompt_prefix + prompt_text}]}     
-                elif self.llm_model == "vicuna-33b":
-                    data = {'model': self.llm_model, "messages":[{"role": "user", "content": prompt_text}]}
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.api_key}'
+                }
+                data = {
+                    'model': 'gpt-4o-mini',
+                    'messages': [
+                        {'role': 'system', 'content': 'You must respond with actions in this format: Action: {action}'},
+                        {'role': 'user', 'content': prompt_text}
+                    ]
+                }
                 response = requests.post(self.llm_url, headers=headers, json=data)
-
                 if response.status_code == 200:
-                    result = response.json()
+                    result = response.json()['choices'][0]['message']['content']
                     break
                 else:
-                    assert False, f"fail to query: status code {response.status_code}"
-                    
+                    raise Exception(f"fail to query: status code {response.status_code}")
             except Exception as e:
                 server_error_cnt += 1
                 print(f"fail to query: {e}")
                 
         try:
             plan = re.search("Action[s]*\:\s*\{([\w\s\<\>\,]*)\}", result, re.I | re.M).group(1)
+            print(f"LLM response: '{result}'")
             return plan
         except:
             print(f"LLM response invalid format: '{result}'.")
-            return self.query_codex(prompt_text)   
+            return self.query_codex(prompt_text)
         
     def plan(self, text, n_ask=10):
         if text in self.plans_dict.keys():
