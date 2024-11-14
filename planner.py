@@ -60,7 +60,7 @@ class Base_Planner(ABC):
                 'Authorization': f'Bearer {self.api_key}'
             }
             data = {
-                'model': 'gpt-3.5-turbo',
+                'model': 'gpt-4o-mini',
                 'messages': [{'role': 'system', 'content': self.prompt_prefix}]
             }
             response = requests.post(self.llm_url, headers=headers, json=data)
@@ -80,7 +80,7 @@ class Base_Planner(ABC):
                 data = {
                     'model': 'gpt-4o-mini',
                     'messages': [
-                        {'role': 'system', 'content': 'You must respond with actions in this format: Action: {action}'},
+                        {'role': 'system', 'content': self.prompt_prefix},
                         {'role': 'user', 'content': prompt_text}
                     ]
                 }
@@ -96,13 +96,14 @@ class Base_Planner(ABC):
                 
         try:
             plan = re.search("Action[s]*\:\s*\{([\w\s\<\>\,]*)\}", result, re.I | re.M).group(1)
-            print(f"LLM response: '{result}'")
+            # print(f"LLM response: '{result}'")
+            # print(f"plan: '{plan}'")
             return plan
         except:
-            print(f"LLM response invalid format: '{result}'.")
+            # print(f"LLM response invalid format: '{result}'.")
             return self.query_codex(prompt_text)
         
-    def plan(self, text, n_ask=10):
+    def plan(self, text, n_ask=1):
         if text in self.plans_dict.keys():
             plans, probs = self.plans_dict[text]
         else:
