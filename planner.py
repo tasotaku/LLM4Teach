@@ -38,7 +38,6 @@ class Base_Planner(ABC):
                 raise ValueError("OPENAI_API_KEY environment variable is not set")
             self.llm_url = 'https://api.openai.com/v1/chat/completions'
             self.plans_dict = {}
-            self.init_llm()
             
     def reset(self, show=False):
         self.dialogue_user = ''
