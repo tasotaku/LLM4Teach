@@ -1,6 +1,7 @@
 import argparse
 import os,json, sys
 import numpy as np
+from absl import flags  # 追加
 # single gpu
 
 os.system('nvidia-smi -q -d Memory | grep -A5 GPU | grep Free > tmp.txt')
@@ -79,10 +80,12 @@ if __name__ == "__main__":
     if sys.argv[1] == 'eval':
         sys.argv.remove(sys.argv[1])
         args = parser.parse_args()
+        flags.FLAGS(["main.py"])  # absl.flagsの初期化
         evaluate(args)
     elif sys.argv[1] == 'train':
         sys.argv.remove(sys.argv[1])
         args = parser.parse_args()
+        flags.FLAGS(["main.py"])  # absl.flagsの初期化
         train(args)
     else:
         print("Invalid option '{}'".format(sys.argv[1]))
