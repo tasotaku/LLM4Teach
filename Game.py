@@ -22,6 +22,9 @@ import utils
 import cv2
 from teacher_policy import TeacherPolicy
 
+from pysc2.env import sc2_env
+from pysc2.lib import actions, features
+
 prefix = os.getcwd()
 task_info_json = os.path.join(prefix, "prompt/task_info.json")
 
@@ -83,9 +86,23 @@ class Game:
             task_info = json.load(f)
         task = task.lower()
         
-        env_fn = utils.make_env_fn(task_info[task]['configurations'], 
-                                   render_mode="rgb_array", 
-                                   frame_stack = frame_stack)
+        if task == 'sc2':
+            env_fn = sc2_env.SC2Env(
+                map_name=task_info[task]['map_name'],
+                players=[sc2_env.Agent(sc2_env.Race.zerg),
+                   sc2_env.Bot(sc2_env.Race.terran,
+                               sc2_env.Difficulty.very_easy)],
+                agent_interface_format=features.AgentInterfaceFormat(
+                    feature_dimensions=features.Dimensions(screen=84, minimap=64)),
+                step_mul=task_info[task]['step_mul'],
+                game_steps_per_episode = task_info[task]['game_steps_per_episode'],
+                visualize=True
+            )
+        else:
+            env_fn = utils.make_env_fn(task_info[task]['configurations'], 
+                                    render_mode="rgb_array", 
+                                    frame_stack = frame_stack)
+            
         self.env = utils.WrapEnv(env_fn)
         self.obs_space = utils.get_obss_preprocessor(self.env.observation_space)[0]
         self.action_space = self.env.action_space.n
@@ -120,7 +137,7 @@ class Game:
             mean_losses = self.student_policy.update_policy(self.buffer)
             opt_time = time.time() - optimizer_start
             try:
-                print("{:.2f} s to optimizer| loss {:6.3f}, entropy {:6.3f}, kickstarting {:6.3f}.".format(opt_time, mean_losses[0], mean_losses[1], mean_losses[2]))
+                print("{:.2f} s to optimizer| loss {:6.3f}, entropy {:6.3f}, kickstarting {:6.3f}, policy {:6.3f}, value {:6.3f}".format(opt_time, mean_losses[0], mean_losses[1], mean_losses[2], mean_losses[3], mean_losses[4]))
             except:
                 print(mean_losses)
 
@@ -205,9 +222,24 @@ class Game:
                 
                 # get action from teacher policy
                 teacher_probs = self.teacher_policy(obs[0])
+                # print(f"teacher_probs: {teacher_probs}")
+                # print(f"action: {action}")
                 
                 # interact with env
                 next_obs, reward, done, info = self.env.step(action)
+                
+                '''
+                # デバック用、状態を表示、任意のキーを入力すると1ステップ進む、qを入力すると終了
+                img = self.env.get_mask_render()  # Assuming this renders the environment with masks
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                cv2.imshow("Environment State", img)
+                print("Press any key to continue, or 'q' to quit.")
+
+                # Wait for a key press to proceed to the next step
+                key = cv2.waitKey(0)
+                if key == ord('q'):  # Press 'q' to exit
+                    break
+                '''
     
                 # store in buffer
                 self.buffer.store(obs, 
