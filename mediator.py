@@ -178,7 +178,9 @@ class Base_Mediator(ABC):
             plan = np.random.choice(plans, p=probs)
             skill_list = [self.parser(plan)]
             probs = [1.]
-                
+        
+        # print("plans:", plans)
+        # print("skill_list:", skill_list)
         return skill_list, probs
     
     def reset(self):
@@ -370,6 +372,58 @@ class TwoDoor_Mediator(Base_Mediator):
                 elif "door2" in text:
                     obj = OBJECT_TO_IDX["door"]
                     coordinate = self.obj_coordinate["door2"]
+                elif "key" in text:
+                    obj = OBJECT_TO_IDX["key"]
+                    coordinate = self.obj_coordinate["key"]
+                elif "explore" in text:
+                    obj = OBJECT_TO_IDX["empty"]
+                    coordinate = None
+                else:
+                    assert False
+            except:
+                # print("Unknown Planning :", text)
+                act = 6 # do nothing
+                obj = OBJECT_TO_IDX["empty"]
+                coordinate = None
+
+            skill = {"action": act,
+                     "object": obj,
+                     "coordinate": coordinate,}
+            skill_list.append(skill)
+        
+        return skill_list
+    
+
+class StarCraft_mediator(Base_Mediator):
+    def __init__(self, soft):
+        super().__init__(soft)
+
+    def RL2LLM(self, obs):
+        return super().RL2LLM(obs, color_info=False)
+    
+    def parser(self, plan):
+        skill_list = []
+        skills = plan.split(',')
+        for text in skills:
+            # action:
+            if "explore" in text:
+                act = SKILL_TO_IDX["explore"]
+            elif "go to" in text:
+                act = SKILL_TO_IDX["go to object"]
+            elif "pick up" in text:
+                act = SKILL_TO_IDX["pickup"]
+            elif "drop" in text:
+                act = SKILL_TO_IDX["drop"]
+            elif "open" in text:
+                act = SKILL_TO_IDX["toggle"]
+            else:
+                # print("Unknown Planning :", text)
+                act = 6 # do nothing
+            # object:
+            try:
+                if "door" in text:
+                    obj = OBJECT_TO_IDX["door"]
+                    coordinate = self.obj_coordinate["door"]
                 elif "key" in text:
                     obj = OBJECT_TO_IDX["key"]
                     coordinate = self.obj_coordinate["key"]

@@ -6,6 +6,7 @@ import minigrid
 from planner import Planner
 from skill import GoTo_Goal, Explore, Pickup, Drop, Toggle, Wait
 from mediator import IDX_TO_SKILL, IDX_TO_OBJECT
+from pysc2.lib import units
 
 # single step (can handle soft planner)
 class TeacherPolicy():
@@ -67,6 +68,30 @@ class TeacherPolicy():
             action += self.get_action(skills, obs) * prob
         return action
 
+
+class SC_TeacherPolicy(TeacherPolicy):
+    def __init__(self, task, offline, soft, prefix, action_space, agent_view_size):
+        super().__init__(task, offline, soft, prefix, action_space, agent_view_size)
+        
+    def skill2teacher(self, skill):
+        skill_action = skill['action']
+        if skill_action == 0:
+            teacher = Explore(self.agent_view_size)
+        elif skill_action == 1:
+            teacher = GoTo_Goal(skill['coordinate'])
+        elif skill_action == 2:
+            teacher = Pickup(skill['object'])
+        elif skill_action == 3:
+            teacher = Drop(skill['object'])
+        elif skill_action == 4:
+            teacher = Toggle(skill['object'])
+        elif skill_action == 5:
+            teacher = Wait()
+        else:
+            assert False, "invalid skill"
+        return teacher
+    
+    
 
 # class TeacherPolicy():
 #     def __init__(self, task, ideal, seed, agent_view_size):
