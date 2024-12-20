@@ -3,6 +3,8 @@ import numpy as np
 from collections import deque
 from gymnasium import spaces
 
+from constant import DEFAULT_SC2_OBSERVATION_SPACE
+
 def make_env_fn(env_key, render_mode=None, frame_stack=1):
     def _f():
         env = gym.make(env_key, render_mode=render_mode)
@@ -45,6 +47,40 @@ class WrapEnv:
         else:
             return np.array([state])
         
+class WrapSC2Env:
+    def __init__(self, env_fn):
+        self.env = env_fn()
+
+    def __getattr__(self, attr):
+        return getattr(self.env, attr)
+
+    def step(self, action):
+        # assert action.ndim == 1
+        env_return = self.env.step(action)
+        if len(env_return) == 4:
+            state, reward, terminated, info = env_return
+        else:
+            state, reward, terminated, truncated, info = env_return
+        if isinstance(state, dict):
+            state = state['image']
+        return np.array([state]), np.array([reward]), np.array([terminated]), np.array([info])
+
+    def render(self):
+        self.env.render()
+
+    def reset(self, seed=None):
+        state, *_ = self.env.reset(seed=seed)
+        if isinstance(state, tuple):
+            ## gym state is tuple type
+            return np.array([state[0]])
+        elif isinstance(state, dict):
+            ## minigrid state is dict type
+            return np.array([state['image']])
+        else:
+            return np.array([state])
+        
+    def observation_space(self):
+        return DEFAULT_SC2_OBSERVATION_SPACE
 
 class FrameStack(gym.Wrapper):
     def __init__(self, env, k):

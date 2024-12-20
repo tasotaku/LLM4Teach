@@ -211,6 +211,10 @@ class TwoDoor_Planner(Base_Planner):
                 "Agent sees <key>, <door1>, <door2>, holds <nothing>.": [["go to <key>, pick up <key>"], [1.0]],
                 "Agent sees <door1>, <door2>, holds <key>.": [["go to <door1>, open <door1>", "go to <door2>, open <door2>"], [0.5, 0.5]],
             }  
+class StarCraft2_Planner(Base_Planner):
+    def __init__(self, offline, soft, prefix):
+        super().__init__(offline, soft, prefix)
+        self.mediator = StarCraft2_Mediator(soft)
                                                             
                                                             
 def Planner(task, offline=True, soft=False, prefix=''):
@@ -222,6 +226,8 @@ def Planner(task, offline=True, soft=False, prefix=''):
         planner = ColoredDoorKey_Planner(offline, soft, prefix)
     elif task.lower() == "twodoor":
         planner = TwoDoor_Planner(offline, soft, prefix)
+    elif task.lower() == "starcraft2":
+        planner = StarCraft2_Planner(offline, soft, prefix)
     return planner
                                                             
                                                             

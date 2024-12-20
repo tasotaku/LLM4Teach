@@ -31,7 +31,7 @@
         "configurations": "MiniGrid-ColoredDoorKey-Min5-Max10-View3"
     },
 
-    "sc2":{   
+    "starcraft2":{   
         "map_name": "Simple64",
         "step_mul" : 1,
         "game_steps_per_episode": 0

@@ -12,6 +12,7 @@ import numpy as np
 import re
 import copy
 from abc import ABC, abstractmethod
+from pysc2.lib import units
 @staticmethod
 def get_minigrid_words():
     colors = ["red", "green", "blue", "yellow", "purple", "grey"]
@@ -399,7 +400,7 @@ class StarCraft_mediator(Base_Mediator):
         super().__init__(soft)
 
     def RL2LLM(self, obs):
-        return super().RL2LLM(obs, color_info=False)
+        pass
     
     def parser(self, plan):
         skill_list = []
@@ -445,6 +446,61 @@ class StarCraft_mediator(Base_Mediator):
         
         return skill_list
 
+    def get_state(self, obs):
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        idle_scvs = [scv for scv in scvs if scv.order_length == 0]
+        command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+        supply_depots = self.get_my_units_by_type(obs, units.Terran.SupplyDepot)
+        completed_supply_depots = self.get_my_completed_units_by_type(
+            obs, units.Terran.SupplyDepot)
+        barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
+        completed_barrackses = self.get_my_completed_units_by_type(
+            obs, units.Terran.Barracks)
+        marines = self.get_my_units_by_type(obs, units.Terran.Marine)
+        
+        queued_marines = (completed_barrackses[0].order_length 
+                        if len(completed_barrackses) > 0 else 0)
+        
+        free_supply = (obs.observation.player.food_cap - 
+                    obs.observation.player.food_used)
+        can_afford_supply_depot = obs.observation.player.minerals >= 100
+        can_afford_barracks = obs.observation.player.minerals >= 150
+        can_afford_marine = obs.observation.player.minerals >= 100
+        
+        enemy_scvs = self.get_enemy_units_by_type(obs, units.Terran.SCV)
+        enemy_idle_scvs = [scv for scv in enemy_scvs if scv.order_length == 0]
+        enemy_command_centers = self.get_enemy_units_by_type(
+            obs, units.Terran.CommandCenter)
+        enemy_supply_depots = self.get_enemy_units_by_type(
+            obs, units.Terran.SupplyDepot)
+        enemy_completed_supply_depots = self.get_enemy_completed_units_by_type(
+            obs, units.Terran.SupplyDepot)
+        enemy_barrackses = self.get_enemy_units_by_type(obs, units.Terran.Barracks)
+        enemy_completed_barrackses = self.get_enemy_completed_units_by_type(
+            obs, units.Terran.Barracks)
+        enemy_marines = self.get_enemy_units_by_type(obs, units.Terran.Marine)
+        
+        return (len(command_centers),
+                len(scvs),
+                len(idle_scvs),
+                len(supply_depots),
+                len(completed_supply_depots),
+                len(barrackses),
+                len(completed_barrackses),
+                len(marines),
+                queued_marines,
+                free_supply,
+                can_afford_supply_depot,
+                can_afford_barracks,
+                can_afford_marine,
+                len(enemy_command_centers),
+                len(enemy_scvs),
+                len(enemy_idle_scvs),
+                len(enemy_supply_depots),
+                len(enemy_completed_supply_depots),
+                len(enemy_barrackses),
+                len(enemy_completed_barrackses),
+                len(enemy_marines))
 
 if __name__ == "__main__":
     word = get_minigrid_words()

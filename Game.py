@@ -20,7 +20,7 @@ import algos
 import skill
 import utils
 import cv2
-from teacher_policy import TeacherPolicy
+from teacher_policy import TeacherPolicy, SC_TeacherPolicy
 
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features
@@ -86,30 +86,42 @@ class Game:
             task_info = json.load(f)
         task = task.lower()
         
-        if task == 'sc2':
-            env_fn = sc2_env.SC2Env(
-                map_name=task_info[task]['map_name'],
-                players=[sc2_env.Agent(sc2_env.Race.zerg),
-                   sc2_env.Bot(sc2_env.Race.terran,
-                               sc2_env.Difficulty.very_easy)],
-                agent_interface_format=features.AgentInterfaceFormat(
-                    feature_dimensions=features.Dimensions(screen=84, minimap=64)),
-                step_mul=task_info[task]['step_mul'],
-                game_steps_per_episode = task_info[task]['game_steps_per_episode'],
-                visualize=True
-            )
+        if task == 'starcraft2':
+            def env_fn():
+                return sc2_env.SC2Env(
+                    map_name=task_info[task]['map_name'],
+                    players=[
+                        sc2_env.Agent(sc2_env.Race.zerg),
+                        sc2_env.Bot(sc2_env.Race.terran, sc2_env.Difficulty.very_easy)
+                    ],
+                    agent_interface_format=features.AgentInterfaceFormat(
+                        feature_dimensions=features.Dimensions(screen=84, minimap=64)
+                    ),
+                    step_mul=task_info[task]['step_mul'],
+                    game_steps_per_episode=task_info[task]['game_steps_per_episode'],
+                    visualize=True
+                )
         else:
             env_fn = utils.make_env_fn(task_info[task]['configurations'], 
                                     render_mode="rgb_array", 
                                     frame_stack = frame_stack)
-            
-        self.env = utils.WrapEnv(env_fn)
+
+        if task == 'starcraft2':
+            self.env = utils.WrapSC2Env(env_fn)
+        else:   
+            self.env = utils.WrapEnv(env_fn)
         self.obs_space = utils.get_obss_preprocessor(self.env.observation_space)[0]
+        print(f"[INFO]: obs_space: {self.obs_space}")
         self.action_space = self.env.action_space.n
+        print(f"[INFO]: action_space: {self.action_space}")
         self.max_ep_len = self.env.max_steps
+        print(f"[INFO]: max_ep_len: {self.max_ep_len}")
 
         prefix = task_info[task]['description'] + task_info[task]['example']
-        self.teacher_policy = TeacherPolicy(task, offline, soft, prefix, self.action_space, self.env.agent_view_size)
+        if task == 'starcraft2':
+            self.teacher_policy = SC_TeacherPolicy(task, offline, soft, prefix, self.action_space, self.env.agent_view_size)
+        else:
+            self.teacher_policy = TeacherPolicy(task, offline, soft, prefix, self.action_space, self.env.agent_view_size)
 
             
     def train(self):
