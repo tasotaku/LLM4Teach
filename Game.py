@@ -111,13 +111,11 @@ class Game:
         else:   
             self.env = utils.WrapEnv(env_fn)
         self.obs_space = utils.get_obss_preprocessor(self.env.observation_space)[0]
-        print(f"[INFO]: obs_space: {self.obs_space}")
         self.action_space = self.env.action_space.n
-        print(f"[INFO]: action_space: {self.action_space}")
         self.max_ep_len = self.env.max_steps
-        print(f"[INFO]: max_ep_len: {self.max_ep_len}")
 
         prefix = task_info[task]['description'] + task_info[task]['example']
+        print(f"[INFO]: agent_view_size: {self.env.agent_view_size}")
         if task == 'starcraft2':
             self.teacher_policy = SC_TeacherPolicy(task, offline, soft, prefix, self.action_space, self.env.agent_view_size)
         else:
@@ -214,6 +212,7 @@ class Game:
         ''' 
         with torch.no_grad():
             obs = self.env.reset()
+            print(f"obs: {obs}")
             done = False 
             ep_len = 0
             

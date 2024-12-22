@@ -395,7 +395,7 @@ class TwoDoor_Mediator(Base_Mediator):
         return skill_list
     
 
-class StarCraft_mediator(Base_Mediator):
+class StarCraft2_mediator(Base_Mediator):
     def __init__(self, soft):
         super().__init__(soft)
 

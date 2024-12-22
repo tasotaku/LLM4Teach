@@ -214,7 +214,7 @@ class TwoDoor_Planner(Base_Planner):
 class StarCraft2_Planner(Base_Planner):
     def __init__(self, offline, soft, prefix):
         super().__init__(offline, soft, prefix)
-        self.mediator = StarCraft2_Mediator(soft)
+        self.mediator = StarCraft2_mediator(soft)
                                                             
                                                             
 def Planner(task, offline=True, soft=False, prefix=''):
