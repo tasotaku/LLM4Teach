@@ -214,6 +214,10 @@ class Game:
         with torch.no_grad():
             obs = self.env.reset()
             print(f"obs: {obs}")
+            print(f"obs len: {len(obs)}")
+            print(f"obs shape: {np.shape(obs)}")
+            print(f"obs tensor: {torch.Tensor(obs)}")
+            print(f"obs tensor shape: {torch.Tensor(obs).shape}")
             done = False 
             ep_len = 0
             
@@ -226,11 +230,7 @@ class Game:
 
             while not done and ep_len < self.max_ep_len:
                 # get action from student policy
-                if len(torch.Tensor(obs).size()) == 1:
-                    obs_tensor = torch.tensor(obs, dtype=torch.float32).view(1, 1, -1, 1).to(self.device)
-                    dist, value, states = self.student_policy(obs_tensor, mask, states)
-                else: 
-                    dist, value, states = self.student_policy(torch.Tensor(obs).to(self.device),
+                dist, value, states = self.student_policy(torch.Tensor(obs).to(self.device),
                                                             mask, states)
                 action = dist.sample()
                 log_probs = dist.log_prob(action)

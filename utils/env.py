@@ -116,7 +116,7 @@ class WrapSC2Env:
             obs, units.Terran.Barracks)
         enemy_marines = self.agent.get_enemy_units_by_type(obs, units.Terran.Marine)
         
-        return [len(command_centers),
+        return [[[[len(command_centers),
                 len(scvs),
                 len(idle_scvs),
                 len(supply_depots),
@@ -136,7 +136,7 @@ class WrapSC2Env:
                 len(enemy_completed_supply_depots),
                 len(enemy_barrackses),
                 len(enemy_completed_barrackses),
-                len(enemy_marines)]
+                len(enemy_marines)]]]]
         
     def translate_action(self, action):
         if action == 0:
