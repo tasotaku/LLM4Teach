@@ -226,8 +226,12 @@ class Game:
 
             while not done and ep_len < self.max_ep_len:
                 # get action from student policy
-                dist, value, states = self.student_policy(torch.Tensor(obs).to(self.device),
-                                                          mask, states)
+                if len(torch.Tensor(obs).size()) == 1:
+                    obs_tensor = torch.tensor(obs, dtype=torch.float32).view(1, 1, -1, 1).to(self.device)
+                    dist, value, states = self.student_policy(obs_tensor, mask, states)
+                else: 
+                    dist, value, states = self.student_policy(torch.Tensor(obs).to(self.device),
+                                                            mask, states)
                 action = dist.sample()
                 log_probs = dist.log_prob(action)
                 action = action.to("cpu").numpy()
