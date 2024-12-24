@@ -95,7 +95,8 @@ class Game:
                         sc2_env.Bot(sc2_env.Race.terran, sc2_env.Difficulty.very_easy)
                     ],
                     agent_interface_format=features.AgentInterfaceFormat(
-                        feature_dimensions=features.Dimensions(screen=84, minimap=64)
+                        feature_dimensions=features.Dimensions(screen=84, minimap=64),
+                        use_raw_units=True,
                     ),
                     step_mul=task_info[task]['step_mul'],
                     game_steps_per_episode=task_info[task]['game_steps_per_episode'],
