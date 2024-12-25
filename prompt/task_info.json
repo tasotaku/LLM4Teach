@@ -34,7 +34,10 @@
     "starcraft2":{   
         "map_name": "Simple64",
         "step_mul" : 1,
-        "game_steps_per_episode": 0
+        "game_steps_per_episode": 0,
+        "description" : "In a strategy game, players build facilities, produce units, and win by destroying the opponent's base. The agent can perform the following actions: do_nothing, harvest_minerals, build_supply_depot, build_barracks, train_marine, attack. Please follow the strategy below to choose actions: First, if there is no supply_depot, build one. Next, build a barracks. Then, produce marines until their count reaches 20. Once the count reaches 20, attack. Based on the given information, clarify which stage of the strategy the agent is currently in and explain why you made that determination. Then, infer what the agent should do in the current state. Finally, select the correct action.",
+        "example" : "\n Example: \n Number of command centers: 1\nNumber of SCVs: 12\nNumber of idle SCVs: 0\nNumber of supply depots: 1\nNumber of completed supply depots: 1\nNumber of barracks: 1\nNumber of completed barracks: 1\nNumber of marines: 5\nNumber of queued marines: 4\nFree supply available: 6\nCan afford supply depot (1 for yes, 0 for no): True\nCan afford barracks (1 for yes, 0 for no): True\nCan afford marine (1 for yes, 0 for no): True\nNumber of enemy command centers: 1\nNumber of enemy SCVs: 12\nNumber of enemy idle SCVs: 12\nNumber of enemy supply depots: 1\nNumber of enemy completed supply depots: 1\nNumber of enemy barracks: 1\nNumber of enemy completed barracks: 1\nNumber of enemy marines: 4\n\nWhich stage of the strategy the agent is in: The agent has a supply depot and barracks, but only 5 marines, so it is in stage (3).\nWhat the agent should do: The agent should produce marines until their count reaches 20.\nAction: {train_marine}"
+
     }
 
 }

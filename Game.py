@@ -81,7 +81,6 @@ class Game:
 
         
     def load_task_info(self, task, frame_stack, offline, soft):
-        print(f"[INFO]: resetting the task: {task}")
         with open(task_info_json, 'r') as f:
             task_info = json.load(f)
         task = task.lower()
@@ -116,7 +115,6 @@ class Game:
         self.max_ep_len = self.env.max_steps
 
         prefix = task_info[task]['description'] + task_info[task]['example']
-        print(f"[INFO]: agent_view_size: {self.env.agent_view_size}")
         if task == 'starcraft2':
             self.teacher_policy = SC_TeacherPolicy(task, offline, soft, prefix, self.action_space, self.env.agent_view_size)
         else:
