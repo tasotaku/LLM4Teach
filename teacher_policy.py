@@ -5,6 +5,7 @@ import gymnasium as gym
 import minigrid
 from planner import Planner
 from skill import GoTo_Goal, Explore, Pickup, Drop, Toggle, Wait
+from skill_sc import Do_nothing, Harvest_minerals, Build_supply_depot, Build_barracks, Train_marine, Attack
 from mediator import IDX_TO_SKILL, IDX_TO_OBJECT
 from pysc2.lib import units
 
@@ -14,6 +15,7 @@ class TeacherPolicy():
         self.planner = Planner(task, offline, soft, prefix)
         self.agent_view_size = agent_view_size
         self.action_space = action_space
+        self.task = task
         
     def get_skill_name(self, skill):
         try:
@@ -45,12 +47,33 @@ class TeacherPolicy():
             assert False, "invalid skill"
         return teacher
     
+    def skill2teacher_sc2(self, skill):
+        skill_action = skill['action']
+        if skill_action == 0:
+            teacher = Do_nothing()
+        elif skill_action == 1:
+            teacher = Harvest_minerals()
+        elif skill_action == 2:
+            teacher = Build_supply_depot()
+        elif skill_action == 3:
+            teacher = Build_barracks()
+        elif skill_action == 4:
+            teacher = Train_marine()
+        elif skill_action == 5:
+            teacher = Attack()
+        else:
+            assert False, "invalid skill"
+        return teacher
+    
     def get_action(self, skill_list, obs):
         teminated = True
         action = None
         while not action and teminated and len(skill_list) > 0:
             skill = skill_list.pop(0)
-            teacher = self.skill2teacher(skill)
+            if self.task == "starcraft2":
+                teacher = self.skill2teacher_sc2(skill)
+            else:
+                teacher = self.skill2teacher(skill)
             action, teminated = teacher(obs)
                 
         if action == None:

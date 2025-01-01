@@ -113,7 +113,7 @@ IDX_TO_STATE = dict(zip(STATE_TO_IDX.values(), STATE_TO_IDX.keys()))
 SKILL_TO_IDX = {"explore": 0, "go to object": 1, "pickup": 2, "drop": 3, "toggle": 4}
 IDX_TO_SKILL = dict(zip(SKILL_TO_IDX.values(), SKILL_TO_IDX.keys()))
 
-
+SKILL_TO_IDX_SC2 = {"do_nothing": 0, "harvest_minerals": 1, "build_supply_depot": 2, "build_barracks": 3, "train_marine": 4, "attack": 5}
 
 
 class Base_Mediator(ABC):
@@ -423,9 +423,6 @@ class StarCraft2_mediator(Base_Mediator):
             "Number of enemy completed barracks: ",
             "Number of enemy marines: "
         ]
-        print(type(labels))
-        print(type(obs))
-        print(obs)
 
         text_lines = [f"{label}{value}" for label, value in zip(labels, obs)]
         return "\n".join(text_lines)
@@ -436,41 +433,22 @@ class StarCraft2_mediator(Base_Mediator):
         skills = plan.split(',')
         for text in skills:
             # action:
-            if "explore" in text:
-                act = SKILL_TO_IDX["explore"]
-            elif "go to" in text:
-                act = SKILL_TO_IDX["go to object"]
-            elif "pick up" in text:
-                act = SKILL_TO_IDX["pickup"]
-            elif "drop" in text:
-                act = SKILL_TO_IDX["drop"]
-            elif "open" in text:
-                act = SKILL_TO_IDX["toggle"]
+            if "do_noting" in text:
+                act = SKILL_TO_IDX_SC2["do_nothing"]
+            elif "harvest_minerals" in text:
+                act = SKILL_TO_IDX_SC2["harvest_minerals"]
+            elif "build_supply_depot" in text:
+                act = SKILL_TO_IDX_SC2["build_supply_depot"]
+            elif "build_barracks" in text:
+                act = SKILL_TO_IDX_SC2["build_barracks"]
+            elif "train_marine" in text:
+                act = SKILL_TO_IDX_SC2["train_marine"]
+            elif "attack" in text:
+                act = SKILL_TO_IDX_SC2["attack"]
             else:
-                # print("Unknown Planning :", text)
-                act = 6 # do nothing
-            # object:
-            try:
-                if "door" in text:
-                    obj = OBJECT_TO_IDX["door"]
-                    coordinate = self.obj_coordinate["door"]
-                elif "key" in text:
-                    obj = OBJECT_TO_IDX["key"]
-                    coordinate = self.obj_coordinate["key"]
-                elif "explore" in text:
-                    obj = OBJECT_TO_IDX["empty"]
-                    coordinate = None
-                else:
-                    assert False
-            except:
-                # print("Unknown Planning :", text)
-                act = 6 # do nothing
-                obj = OBJECT_TO_IDX["empty"]
-                coordinate = None
-
-            skill = {"action": act,
-                     "object": obj,
-                     "coordinate": coordinate,}
+                act = SKILL_TO_IDX_SC2["do_nothing"]
+            
+            skill = {"action": act}
             skill_list.append(skill)
         
         return skill_list

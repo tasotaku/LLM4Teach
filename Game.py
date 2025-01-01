@@ -211,9 +211,6 @@ class Game:
         ''' 
         with torch.no_grad():
             obs = self.env.reset()
-            print(f"obs: {obs}")
-            print(f"obs len: {len(obs)}")
-            print(f"obs shape: {np.shape(obs)}")
             done = False 
             ep_len = 0
             
