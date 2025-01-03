@@ -423,8 +423,7 @@ class StarCraft2_mediator(Base_Mediator):
             "Number of enemy completed barracks: ",
             "Number of enemy marines: "
         ]
-
-        text_lines = [f"{label}{value}" for label, value in zip(labels, obs)]
+        text_lines = [f"{label}{value[0]}" for label, value in zip(labels, obs[0])]
         return "\n".join(text_lines)
         
     

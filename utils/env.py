@@ -3,7 +3,7 @@ import numpy as np
 from collections import deque
 from gymnasium import spaces
 
-from constant import DEFAULT_SC2_OBSERVATION_SPACE_SHAPE, DEFAULT_SC2_ACTION_SPACE, DEFAULT_SC2_MAX_STEPS
+from constant import DEFAULT_SC2_OBSERVATION_SPACE_SHAPE, DEFAULT_SC2_ACTION_SPACE, DEFAULT_SC2_MAX_STEPS, DEFAULT_SC2_OBSERVATION_SPACE_SHAPE
 from pysc2.lib import actions, features, units
 from utils.base_terran_agent import BaseTerranAgent
 
@@ -64,9 +64,10 @@ class WrapSC2Env:
     def step(self, action):
         self.agent.step(self.timesteps[0])
         real_action = self.translate_action(action)
+        print("real_action: ", real_action)
         self.timesteps = self.env.step([real_action])
         state = self.get_state(self.timesteps[0])
-        reward = self.timesteps[0].reward
+        reward = np.array([self.timesteps[0].reward])
         terminated = self.timesteps[0].last()
         info = {}
         return state, reward, terminated, info
@@ -116,7 +117,7 @@ class WrapSC2Env:
             obs, units.Terran.Barracks)
         enemy_marines = self.agent.get_enemy_units_by_type(obs, units.Terran.Marine)
         
-        return [len(command_centers),
+        state = np.array([len(command_centers),
                 len(scvs),
                 len(idle_scvs),
                 len(supply_depots),
@@ -136,21 +137,25 @@ class WrapSC2Env:
                 len(enemy_completed_supply_depots),
                 len(enemy_barrackses),
                 len(enemy_completed_barrackses),
-                len(enemy_marines)]
+                len(enemy_marines)
+                ]
+        )
+        
+        return state.reshape(1, 1, DEFAULT_SC2_OBSERVATION_SPACE_SHAPE, 1)
         
     def translate_action(self, action):
         if action == 0:
-            return self.agent.do_nothing()
+            return self.agent.do_nothing(self.timesteps[0])
         elif action == 1:
-            return self.agent.harvest_mineral()
+            return self.agent.harvest_minerals(self.timesteps[0])
         elif action == 2:
-            return self.agent.build_supply_depot()
+            return self.agent.build_supply_depot(self.timesteps[0])
         elif action == 3:
-            return self.agent.build_barracks()
+            return self.agent.build_barracks(self.timesteps[0])
         elif action == 4:
-            return self.agent.train_marine()
+            return self.agent.train_marine(self.timesteps[0])
         elif action == 5:
-            return self.agent.attack()
+            return self.agent.attack(self.timesteps[0])
 
 class FrameStack(gym.Wrapper):
     def __init__(self, env, k):

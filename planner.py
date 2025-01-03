@@ -95,8 +95,8 @@ class Base_Planner(ABC):
                 
         try:
             plan = re.search("Action[s]*\:\s*\{([\w\s\<\>\,]*)\}", result, re.I | re.M).group(1)
-            # print(f"LLM response: '{result}'")
-            # print(f"plan: {plan}")
+            print(f"LLM response: '{result}'")
+            print(f"plan: {plan}")
             return plan
         except:
             # print(f"LLM response invalid format: '{result}'.")

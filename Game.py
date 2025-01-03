@@ -90,12 +90,14 @@ class Game:
                 return sc2_env.SC2Env(
                     map_name=task_info[task]['map_name'],
                     players=[
-                        sc2_env.Agent(sc2_env.Race.zerg),
+                        sc2_env.Agent(sc2_env.Race.terran),
                         sc2_env.Bot(sc2_env.Race.terran, sc2_env.Difficulty.very_easy)
                     ],
                     agent_interface_format=features.AgentInterfaceFormat(
-                        feature_dimensions=features.Dimensions(screen=84, minimap=64),
+                        action_space=actions.ActionSpace.RAW,
                         use_raw_units=True,
+                        raw_resolution=64,
+                        feature_dimensions=features.Dimensions(screen=84, minimap=64),
                     ),
                     step_mul=task_info[task]['step_mul'],
                     game_steps_per_episode=task_info[task]['game_steps_per_episode'],
@@ -223,11 +225,7 @@ class Game:
 
             while not done and ep_len < self.max_ep_len:
                 # get action from student policy
-                if len(torch.Tensor(obs).size()) == 1:
-                    obs_tensor = torch.tensor(obs, dtype=torch.float32).view(1, 1, -1, 1).to(self.device)
-                    dist, value, states = self.student_policy(obs_tensor, mask, states)
-                else: 
-                    dist, value, states = self.student_policy(torch.Tensor(obs).to(self.device),
+                dist, value, states = self.student_policy(torch.Tensor(obs).to(self.device),
                                                             mask, states)
                 action = dist.sample()
                 log_probs = dist.log_prob(action)
