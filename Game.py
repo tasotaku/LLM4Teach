@@ -14,6 +14,8 @@ import numpy as np
 import torch
 import cv2
 import time
+import matplotlib.pyplot as plt
+import logging
 
 import env
 import algos
@@ -25,6 +27,7 @@ from teacher_policy import TeacherPolicy, SC_TeacherPolicy
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features
 
+logging.getLogger("pysc2").setLevel(logging.WARNING)
 prefix = os.getcwd()
 task_info_json = os.path.join(prefix, "prompt/task_info.json")
 
@@ -50,13 +53,23 @@ class Game:
         self.batch_size = args.batch_size
         self.recurrent = args.recurrent
         # self.student_policy = policy
-        self.student_policy = algos.PPO(policy, 
-                                        self.obs_space,
-                                        self.action_space,
-                                        self.device, 
-                                        self.logger.dir, 
-                                        batch_size=self.batch_size, 
-                                        recurrent=self.recurrent)
+        if args.not_use_teacher:
+            self.student_policy = algos.PPO(policy,
+                                            self.obs_space,
+                                            self.action_space,
+                                            self.device,
+                                            self.logger.dir,
+                                            batch_size=self.batch_size,
+                                            recurrent=self.recurrent,
+                                            kickstarting_coef_initial=0)
+        else:
+            self.student_policy = algos.PPO(policy,
+                                            self.obs_space,
+                                            self.action_space,
+                                            self.device,
+                                            self.logger.dir,
+                                            batch_size=self.batch_size,
+                                            recurrent=self.recurrent)
         
         # init buffer
         self.gamma = args.gamma
@@ -70,6 +83,11 @@ class Game:
         self.eval_interval = args.eval_interval
         self.save_interval = args.save_interval
         self.total_steps = 0
+        
+        self.train_success_rates = []  # 訓練データの勝率記録用
+        self.eval_success_rates = []   # 評価データの勝率記録用
+        
+        self.not_use_teacher = args.not_use_teacher
         
         
     def setup_seed(self, seed):
@@ -101,7 +119,8 @@ class Game:
                     ),
                     step_mul=task_info[task]['step_mul'],
                     game_steps_per_episode=task_info[task]['game_steps_per_episode'],
-                    visualize=True
+                    visualize=True,
+                    disable_fog=False,
                 )
         else:
             env_fn = utils.make_env_fn(task_info[task]['configurations'], 
@@ -175,6 +194,7 @@ class Game:
                 avg_reward = np.mean(self.buffer.ep_returns)
                 std_reward = np.std(self.buffer.ep_returns)
                 success_rate = sum(i > 0 for i in self.buffer.ep_returns) / n_traj
+                self.train_success_rates.append(success_rate)  # 勝率データを記録
                 sys.stdout.write("-" * 49 + "\n")
                 sys.stdout.write("| %25s | %15s |" % ('Timesteps', self.total_steps) + "\n")
                 sys.stdout.write("| %25s | %15s |" % ('Return (train)', round(avg_reward,2)) + "\n")
@@ -184,6 +204,8 @@ class Game:
                     avg_eval_reward = np.mean(eval_returns)
                     avg_eval_len = np.mean(eval_lens)
                     eval_success_rate = np.sum(eval_success) / self.num_eval
+                    self.eval_success_rates.append(eval_success_rate)
+                    self.plot_success_rate()
                     sys.stdout.write("| %25s | %15s |" % ('Return (eval)', round(avg_eval_reward,2)) + "\n")
                     sys.stdout.write("| %25s | %15s |" % ('Episode Length (eval) ', round(avg_eval_len,2)) + "\n")
                     sys.stdout.write("| %25s | %15s |" % ('Success Rate (eval) ', round(eval_success_rate,2)) + "\n")
@@ -232,8 +254,8 @@ class Game:
                 action = action.to("cpu").numpy()
                 
                 # get action from teacher policy
-                if len(torch.Tensor(obs).size()) == 1:
-                    teacher_probs = self.teacher_policy(obs)
+                if self.not_use_teacher:
+                    teacher_probs = [1, 0, 0, 0, 0, 0]
                 else:
                     teacher_probs = self.teacher_policy(obs[0])
                 # print(f"teacher_probs: {teacher_probs}")
@@ -347,6 +369,20 @@ class Game:
                 out.release()
                 
             return ep_return, ep_len, ep_success
+        
+    
+    def plot_success_rate(self):
+        plt.figure(figsize=(10, 5))
+        # x 軸の値を 2 の間隔で設定する
+        # plt.plot(self.train_success_rates, label='Train Success Rate', linestyle='--', marker='o')
+        plt.plot(self.eval_success_rates, label='Eval Success Rate', linestyle='-', marker='s')
+        plt.xlabel('Iterations')
+        plt.ylabel('Success Rate')
+        plt.title('Evaluation Success Rates')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join(self.logger.dir, 'success_rate_plot.png'))
+        # plt.show()
     
         
 if __name__ == '__main__':

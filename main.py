@@ -59,7 +59,7 @@ if __name__ == "__main__":
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--policy", type=str, default='ppo')
     parser.add_argument("--n_itr", type=int, default=20000, help="Number of iterations of the learning algorithm")
-    parser.add_argument("--traj_per_itr", type=int, default=10)
+    parser.add_argument("--traj_per_itr", type=int, default=1)
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lam", type=float, default=0.95, help="Generalized advantage estimate discount")
     parser.add_argument("--gamma", type=float, default=0.99, help="MDP discount")
@@ -74,8 +74,10 @@ if __name__ == "__main__":
     parser.add_argument("--soft_planner", default=False, action='store_true')
     parser.add_argument("--eval_teacher", default=False, action='store_true')
     parser.add_argument("--num_eval", type=int, default=10)
-    parser.add_argument("--eval_interval", type=int, default=10)
-    parser.add_argument("--save_interval", type=int, default=100)
+    parser.add_argument("--eval_interval", type=int, default=2)
+    parser.add_argument("--save_interval", type=int, default=2)
+    
+    parser.add_argument("--not_use_teacher", default=False, action='store_true')
     
     if sys.argv[1] == 'eval':
         sys.argv.remove(sys.argv[1])

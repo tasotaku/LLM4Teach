@@ -28,7 +28,7 @@ class PPO(Base):
                  clip_eps=0.2,
                  entropy_coef=0.001,
                  kickstarting_coef_initial=10.,
-                 kickstarting_coef_decent=0.005,
+                 kickstarting_coef_decent=0.01,
                  kickstarting_coef_minimum=0.1,
                  iter_with_ks=3000,
                  value_loss_coef=.5,  

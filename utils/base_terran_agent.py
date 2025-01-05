@@ -44,6 +44,10 @@ class BaseTerranAgent(base_agent.BaseAgent):
       command_center = self.get_my_units_by_type(
           obs, units.Terran.CommandCenter)[0]
       self.base_top_left = (command_center.x < 32)
+      self.sub_base_xy = (14, 48) if self.base_top_left else (43, 18)
+      self.main_base_xy = (38, 44) if self.base_top_left else (19, 23)
+      self.targeting_sub_base = True
+      self.last_toggle_step = 0
 
   def do_nothing(self, obs):
     return actions.RAW_FUNCTIONS.no_op()
@@ -115,11 +119,40 @@ class BaseTerranAgent(base_agent.BaseAgent):
   def attack(self, obs):
     marines = self.get_my_units_by_type(obs, units.Terran.Marine)
     if len(marines) > 0:
-      attack_xy = (38, 44) if self.base_top_left else (19, 23)
-      distances = self.get_distances(obs, marines, attack_xy)
-      marine = marines[np.argmax(distances)]
-      x_offset = random.randint(-4, 4)
-      y_offset = random.randint(-4, 4)
-      return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", marine.tag, (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+        marine_tags = [marine.tag for marine in marines]  # すべてのMarineのタグを取得
+
+        # 攻撃対象の設定
+        if self.targeting_sub_base:
+            attack_xy = self.sub_base_xy
+        else:
+            attack_xy = self.main_base_xy
+
+        # サブ拠点の距離と状態の確認
+        if self.targeting_sub_base:
+            distances_to_sub = self.get_distances(obs, marines, self.sub_base_xy)
+            distance_to_sub = np.min(distances_to_sub)
+
+            enemy_command_centers = self.get_enemy_units_by_type(
+                obs, units.Terran.CommandCenter)
+            enemy_supply_depots = self.get_enemy_units_by_type(
+                obs, units.Terran.SupplyDepot)
+            enemy_barrackses = self.get_enemy_units_by_type(
+                obs, units.Terran.Barracks)
+
+            if distance_to_sub < 5 and len(enemy_command_centers) == 0 and len(enemy_supply_depots) == 0 and len(enemy_barrackses) == 0:
+                self.targeting_sub_base = False
+                self.last_toggle_step = obs.observation.game_loop[0]  # サブ拠点を攻略した時点でタイミングを記録
+
+        # ターゲットの切り替えロジック
+        current_step = obs.observation.game_loop[0]
+        if current_step - self.last_toggle_step > 5000 and self.last_toggle_step != 0:  # 8000ステップ（ゲーム内時間）ごとに切り替え
+            self.targeting_sub_base = not self.targeting_sub_base
+            self.last_toggle_step = current_step
+
+        # 攻撃命令をランダムな偏差を付与して送る
+        x_offset = random.randint(-6, 6)
+        y_offset = random.randint(-6, 6)
+        return actions.RAW_FUNCTIONS.Attack_pt(
+            "now", marine_tags, (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+
     return actions.RAW_FUNCTIONS.no_op()

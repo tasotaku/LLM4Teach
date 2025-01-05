@@ -64,18 +64,20 @@ class WrapSC2Env:
     def step(self, action):
         self.agent.step(self.timesteps[0])
         real_action = self.translate_action(action)
-        print("real_action: ", real_action)
         self.timesteps = self.env.step([real_action])
         state = self.get_state(self.timesteps[0])
         reward = np.array([self.timesteps[0].reward])
         terminated = self.timesteps[0].last()
+        if terminated:
+            # 勝敗を出力
+            print("reward: ", reward)
         info = {}
         return state, reward, terminated, info
 
     def render(self):
         self.env.render()
 
-    def reset(self):
+    def reset(self, seed=None):
         self.timesteps = self.env.reset()
         return self.get_state(self.timesteps[0])
     
@@ -108,6 +110,8 @@ class WrapSC2Env:
         enemy_idle_scvs = [scv for scv in enemy_scvs if scv.order_length == 0]
         enemy_command_centers = self.agent.get_enemy_units_by_type(
             obs, units.Terran.CommandCenter)
+        enemy_completed_command_centers = self.agent.get_enemy_completed_units_by_type(
+            obs, units.Terran.CommandCenter)
         enemy_supply_depots = self.agent.get_enemy_units_by_type(
             obs, units.Terran.SupplyDepot)
         enemy_completed_supply_depots = self.agent.get_enemy_completed_units_by_type(
@@ -117,9 +121,11 @@ class WrapSC2Env:
             obs, units.Terran.Barracks)
         enemy_marines = self.agent.get_enemy_units_by_type(obs, units.Terran.Marine)
         
-        state = np.array([len(command_centers),
-                len(scvs),
-                len(idle_scvs),
+        state = np.array(
+                [
+                len(command_centers),
+                # len(scvs),
+                # len(idle_scvs),
                 len(supply_depots),
                 len(completed_supply_depots),
                 len(barrackses),
@@ -130,14 +136,14 @@ class WrapSC2Env:
                 can_afford_supply_depot,
                 can_afford_barracks,
                 can_afford_marine,
-                len(enemy_command_centers),
-                len(enemy_scvs),
-                len(enemy_idle_scvs),
-                len(enemy_supply_depots),
-                len(enemy_completed_supply_depots),
-                len(enemy_barrackses),
-                len(enemy_completed_barrackses),
-                len(enemy_marines)
+                # len(enemy_command_centers),
+                # len(enemy_scvs),
+                # len(enemy_idle_scvs),
+                # len(enemy_supply_depots),
+                # len(enemy_completed_supply_depots),
+                # len(enemy_barrackses),
+                # len(enemy_completed_barrackses),
+                # len(enemy_marines)
                 ]
         )
         

@@ -402,26 +402,26 @@ class StarCraft2_mediator(Base_Mediator):
     def RL2LLM(self, obs):
         labels = [
             "Number of command centers: ",
-            "Number of SCVs: ",
-            "Number of idle SCVs: ",
+            # "Number of SCVs: ",
+            # "Number of idle SCVs: ",
             "Number of supply depots: ",
             "Number of completed supply depots: ",
             "Number of barracks: ",
             "Number of completed barracks: ",
             "Number of marines: ",
-            "Number of queued marines: ",
+            "Number of marines_in_production: ",
             "Free supply available: ",
             "Can afford supply depot (1 for yes, 0 for no): ",
             "Can afford barracks (1 for yes, 0 for no): ",
             "Can afford marine (1 for yes, 0 for no): ",
-            "Number of enemy command centers: ",
-            "Number of enemy SCVs: ",
-            "Number of enemy idle SCVs: ",
-            "Number of enemy supply depots: ",
-            "Number of enemy completed supply depots: ",
-            "Number of enemy barracks: ",
-            "Number of enemy completed barracks: ",
-            "Number of enemy marines: "
+            # "Number of enemy command centers: ",
+            # "Number of enemy SCVs: ",
+            # "Number of enemy idle SCVs: ",
+            # "Number of enemy supply depots: ",
+            # "Number of enemy completed supply depots: ",
+            # "Number of enemy barracks: ",
+            # "Number of enemy completed barracks: ",
+            # "Number of enemy marines: "
         ]
         text_lines = [f"{label}{value[0]}" for label, value in zip(labels, obs[0])]
         return "\n".join(text_lines)
