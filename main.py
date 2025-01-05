@@ -75,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument("--eval_teacher", default=False, action='store_true')
     parser.add_argument("--num_eval", type=int, default=10)
     parser.add_argument("--eval_interval", type=int, default=2)
-    parser.add_argument("--save_interval", type=int, default=2)
+    parser.add_argument("--save_interval", type=int, default=10)
     
     parser.add_argument("--not_use_teacher", default=False, action='store_true')
     
