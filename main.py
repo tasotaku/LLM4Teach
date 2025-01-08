@@ -37,7 +37,7 @@ def evaluate(args):
         env_seed_list = args.env_seed_list
         
     for i in env_seed_list:
-        eval_outputs = game.evaluate(seed = i, teacher_policy = args.eval_teacher)
+        eval_outputs = game.evaluate(seed = i, teacher_policy = args.eval_teacher, record_frames=False)
         eval_returns.append(eval_outputs[0])
         eval_lens.append(eval_outputs[1])
         eval_success.append(eval_outputs[2])

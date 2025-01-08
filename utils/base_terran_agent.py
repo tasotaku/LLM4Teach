@@ -44,7 +44,7 @@ class BaseTerranAgent(base_agent.BaseAgent):
       command_center = self.get_my_units_by_type(
           obs, units.Terran.CommandCenter)[0]
       self.base_top_left = (command_center.x < 32)
-      self.sub_base_xy = (14, 48) if self.base_top_left else (43, 18)
+      self.sub_base_xy = (16, 48) if self.base_top_left else (41, 20)
       self.main_base_xy = (38, 44) if self.base_top_left else (19, 23)
       self.targeting_sub_base = True
       self.last_toggle_step = 0

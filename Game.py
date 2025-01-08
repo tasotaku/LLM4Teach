@@ -109,7 +109,7 @@ class Game:
                     map_name=task_info[task]['map_name'],
                     players=[
                         sc2_env.Agent(sc2_env.Race.terran),
-                        sc2_env.Bot(sc2_env.Race.terran, sc2_env.Difficulty.very_easy)
+                        sc2_env.Bot(sc2_env.Race.terran, sc2_env.Difficulty.easy)
                     ],
                     agent_interface_format=features.AgentInterfaceFormat(
                         action_space=actions.ActionSpace.RAW,
@@ -375,7 +375,8 @@ class Game:
         plt.figure(figsize=(10, 5))
         # x 軸の値を 2 の間隔で設定する
         # plt.plot(self.train_success_rates, label='Train Success Rate', linestyle='--', marker='o')
-        plt.plot(self.eval_success_rates, label='Eval Success Rate', linestyle='-', marker='s')
+        iterations = [i * self.eval_interval for i in range(len(self.eval_success_rates))]
+        plt.plot(iterations, self.eval_success_rates, label='Eval Success Rate', linestyle='-', marker='s')
         plt.xlabel('Iterations')
         plt.ylabel('Success Rate')
         plt.title('Evaluation Success Rates')
