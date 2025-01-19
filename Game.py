@@ -22,7 +22,7 @@ import algos
 import skill
 import utils
 import cv2
-from teacher_policy import TeacherPolicy, SC_TeacherPolicy
+from teacher_policy import TeacherPolicy, SC_TeacherPolicy, SC2_2_TeacherPolicy
 
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features
@@ -103,7 +103,7 @@ class Game:
             task_info = json.load(f)
         task = task.lower()
         
-        if task == 'starcraft2':
+        if task == 'starcraft2' or task == 'starcraft2_2':
             def env_fn():
                 return sc2_env.SC2Env(
                     map_name=task_info[task]['map_name'],
@@ -129,6 +129,8 @@ class Game:
 
         if task == 'starcraft2':
             self.env = utils.WrapSC2Env(env_fn)
+        elif task == 'starcraft2_2':
+            self.env = utils.WrapSC2_2Env(env_fn)
         else:   
             self.env = utils.WrapEnv(env_fn)
         self.obs_space = utils.get_obss_preprocessor(self.env.observation_space)[0]
@@ -138,6 +140,8 @@ class Game:
         prefix = task_info[task]['description'] + task_info[task]['example']
         if task == 'starcraft2':
             self.teacher_policy = SC_TeacherPolicy(task, offline, soft, prefix, self.action_space, self.env.agent_view_size)
+        elif task == 'starcraft2_2':
+            self.teacher_policy = SC2_2_TeacherPolicy(task, offline, soft, prefix, self.action_space, self.env.agent_view_size)
         else:
             self.teacher_policy = TeacherPolicy(task, offline, soft, prefix, self.action_space, self.env.agent_view_size)
 
@@ -255,7 +259,7 @@ class Game:
                 
                 # get action from teacher policy
                 if self.not_use_teacher:
-                    teacher_probs = [1, 0, 0, 0, 0, 0]
+                    teacher_probs = [1] + [0] * (self.action_space - 1)
                 else:
                     teacher_probs = self.teacher_policy(obs[0])
                 # print(f"teacher_probs: {teacher_probs}")

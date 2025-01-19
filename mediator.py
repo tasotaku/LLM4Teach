@@ -114,6 +114,7 @@ SKILL_TO_IDX = {"explore": 0, "go to object": 1, "pickup": 2, "drop": 3, "toggle
 IDX_TO_SKILL = dict(zip(SKILL_TO_IDX.values(), SKILL_TO_IDX.keys()))
 
 SKILL_TO_IDX_SC2 = {"do_nothing": 0, "harvest_minerals": 1, "build_supply_depot": 2, "build_barracks": 3, "train_marine": 4, "attack": 5}
+SKILL_TO_IDX_SC2_2 = {"do_nothing": 0, "harvest_minerals": 1, "build_supply_depot": 2, "build_barracks": 3, "train_marine": 4, "attack_main_base": 5, "attack_sub_base": 6, "attack_remaining_hidden_structures": 7}
 
 
 class Base_Mediator(ABC):
@@ -450,6 +451,59 @@ class StarCraft2_mediator(Base_Mediator):
             skill = {"action": act}
             skill_list.append(skill)
         
+        return skill_list
+    
+class StarCraft2_2_mediator(Base_Mediator):
+    def __init__(self, soft):
+        super().__init__(soft)
+
+    def RL2LLM(self, obs):
+        labels = [
+            "Number of command centers: ",
+            "Number of supply depots: ",
+            "Number of completed supply depots: ",
+            "Number of barracks: ",
+            "Number of completed barracks: ",
+            "Number of marines: ",
+            "Number of marines_in_production: ",
+            "Free supply available: ",
+            "Can afford supply depot (1 for yes, 0 for no): ",
+            "Can afford barracks (1 for yes, 0 for no): ",
+            "Can afford marine (1 for yes, 0 for no): ",
+            "main_base_facility_status (0 for No building, 1 for Unknown, 2 for Building exists): ",
+            "sub_base_facility_status (0 for No building, 1 for Unknown, 2 for Building exists): ",
+        ]
+        text_lines = [f"{label}{value[0]}" for label, value in zip(labels, obs[0])]
+        return "\n".join(text_lines)
+        
+    
+    def parser(self, plan):
+        skill_list = []
+        skills = plan.split(',')
+        for text in skills:
+            # action:
+            if "do_noting" in text:
+                act = SKILL_TO_IDX_SC2_2["do_nothing"]
+            elif "harvest_minerals" in text:
+                act = SKILL_TO_IDX_SC2_2["harvest_minerals"]
+            elif "build_supply_depot" in text:
+                act = SKILL_TO_IDX_SC2_2["build_supply_depot"]
+            elif "build_barracks" in text:
+                act = SKILL_TO_IDX_SC2_2["build_barracks"]
+            elif "train_marine" in text:
+                act = SKILL_TO_IDX_SC2_2["train_marine"]
+            elif "attack_main_base" in text:
+                act = SKILL_TO_IDX_SC2_2["attack_main_base"]
+            elif "attack_sub_base" in text:
+                act = SKILL_TO_IDX_SC2_2["attack_sub_base"]
+            elif "attack_remaining_hidden_structures" in text:
+                act = SKILL_TO_IDX_SC2_2["attack_remaining_hidden_structures"]
+            else:
+                act = SKILL_TO_IDX_SC2_2["do_nothing"]
+                
+            skill = {"action": act}
+            skill_list.append(skill)
+            
         return skill_list
 
 if __name__ == "__main__":

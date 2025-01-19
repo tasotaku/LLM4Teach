@@ -159,3 +159,4 @@ cython_debug/
 #.idea/
 log/ppo/SimpleDoorkey/*
 log/ppo/starcraft2/*
+log/ppo/StarCraft2_2/*

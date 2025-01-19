@@ -95,6 +95,7 @@ class Base_Planner(ABC):
                 
         try:
             plan = re.search("Action[s]*\:\s*\{([\w\s\<\>\,]*)\}", result, re.I | re.M).group(1)
+            # print(f"prompt: '{prompt_text}'")
             # print(f"LLM response: '{result}'")
             # print(f"plan: {plan}")
             return plan
@@ -126,6 +127,7 @@ class Base_Planner(ABC):
         # self.mediator.reset()
         text = self.mediator.RL2LLM(obs)
         plans, probs = self.plan(text)
+        print(f"plans: {plans}")
         self.dialogue_user = text + "\n" + str(plans) + "\n" + str(probs)
         if self.show_dialogue:
             print(self.dialogue_user)
@@ -214,6 +216,11 @@ class StarCraft2_Planner(Base_Planner):
     def __init__(self, offline, soft, prefix):
         super().__init__(offline, soft, prefix)
         self.mediator = StarCraft2_mediator(soft)
+        
+class StarCraft2_2_Planner(Base_Planner):
+    def __init__(self, offline, soft, prefix):
+        super().__init__(offline, soft, prefix)
+        self.mediator = StarCraft2_2_mediator(soft)
                                                             
                                                             
 def Planner(task, offline=True, soft=False, prefix=''):
@@ -227,6 +234,8 @@ def Planner(task, offline=True, soft=False, prefix=''):
         planner = TwoDoor_Planner(offline, soft, prefix)
     elif task.lower() == "starcraft2":
         planner = StarCraft2_Planner(offline, soft, prefix)
+    elif task.lower() == "starcraft2_2":
+        planner = StarCraft2_2_Planner(offline, soft, prefix)
     return planner
                                                             
                                                             

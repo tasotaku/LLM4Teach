@@ -5,7 +5,7 @@ import gymnasium as gym
 import minigrid
 from planner import Planner
 from skill import GoTo_Goal, Explore, Pickup, Drop, Toggle, Wait
-from skill_sc import Do_nothing, Harvest_minerals, Build_supply_depot, Build_barracks, Train_marine, Attack
+from skill_sc import Do_nothing, Harvest_minerals, Build_supply_depot, Build_barracks, Train_marine, Attack, Attack_main_base, Attack_sub_base, Attack_remaining_hidden_structures
 from mediator import IDX_TO_SKILL, IDX_TO_OBJECT
 from pysc2.lib import units
 
@@ -72,6 +72,8 @@ class TeacherPolicy():
             skill = skill_list.pop(0)
             if self.task == "starcraft2":
                 teacher = self.skill2teacher_sc2(skill)
+            elif self.task == "starcraft2_2":
+                teacher = self.skill2teacher_sc2(skill)
             else:
                 teacher = self.skill2teacher(skill)
             action, teminated = teacher(obs)
@@ -110,6 +112,33 @@ class SC_TeacherPolicy(TeacherPolicy):
             teacher = Toggle(skill['object'])
         elif skill_action == 5:
             teacher = Wait()
+        else:
+            assert False, "invalid skill"
+        return teacher
+    
+    
+class SC2_2_TeacherPolicy(TeacherPolicy):
+    def __init__(self, task, offline, soft, prefix, action_space, agent_view_size):
+        super().__init__(task, offline, soft, prefix, action_space, agent_view_size)
+        
+    def skill2teacher_sc2(self, skill):
+        skill_action = skill['action']
+        if skill_action == 0:
+            teacher = Do_nothing()
+        elif skill_action == 1:
+            teacher = Harvest_minerals()
+        elif skill_action == 2:
+            teacher = Build_supply_depot()
+        elif skill_action == 3:
+            teacher = Build_barracks()
+        elif skill_action == 4:
+            teacher = Train_marine()
+        elif skill_action == 5:
+            teacher = Attack_main_base()
+        elif skill_action == 6:
+            teacher = Attack_sub_base()
+        elif skill_action == 7:
+            teacher = Attack_remaining_hidden_structures()
         else:
             assert False, "invalid skill"
         return teacher

@@ -47,3 +47,25 @@ class Attack(BaseSkill):
     
     def __call__(self, obs):
         return 5, True
+    
+class Attack_main_base(BaseSkill):
+    def __init__(self):
+        pass
+    
+    def __call__(self, obs):
+        return 5, True
+
+class Attack_sub_base(BaseSkill):
+    def __init__(self):
+        pass
+    
+    def __call__(self, obs):
+        return 6, True
+    
+class Attack_remaining_hidden_structures(BaseSkill):
+    def __init__(self):
+        pass
+    
+    def __call__(self, obs):
+        return 7, True
+    
